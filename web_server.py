@@ -36,8 +36,7 @@ HOME_PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 <title>Web Challenge</title>""" + STYLE + """</head><body>
   <h1>Web Challenge - Cookie Manipulation</h1>
   <div class="info">
-    Your role cookie (base64): <code>{{ role_b64 }}</code><br>
-    Decoded, that is: <strong>{{ role }}</strong><br>
+    Your current role: <strong>{{ role }}</strong><br>
     The flag is only visible to <strong>admin</strong>.
   </div>
   <p><a href="/admin">Go to /admin page</a></p>
@@ -46,15 +45,18 @@ HOME_PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 ADMIN_DENIED = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 <title>Access Denied</title>""" + STYLE + """</head><body>
   <h1>Access Denied</h1>
-  <div class="info">Your role decodes to: <strong>{{ role }}</strong><br>
-    Only admin can see the flag.</div>
+  <div class="info">
+    Your current role: <strong>{{ role }}</strong><br>
+    You do not have permission to access this page.<br>
+    Only admin can see the flag.
+  </div>
   <p><a href="/">&larr; Go back</a></p>
 </body></html>"""
 
 ADMIN_OK = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 <title>Admin - FLAG</title>""" + STYLE + """</head><body>
   <h1>Welcome, Admin!</h1>
-  <div class="info">You changed the base64-encoded cookie. base64 is NOT security.</div>
+  <div class="info">You have successfully exploited the <strong>insecure cookie</strong> vulnerability.</div>
   <div class="flag-box">FLAG: {{ flag }}</div>
   <hr>
 </body></html>"""
@@ -69,9 +71,10 @@ def decode_role(cookie_value):
 
 @app.route("/")
 def home():
-    role_b64 = request.cookies.get("role") or base64.b64encode(b"user").decode()
-    role = decode_role(role_b64) or "user"
-    resp = make_response(render_template_string(HOME_PAGE, role_b64=role_b64, role=role))
+    # Always (re)issue a clean base64-encoded role=user cookie (overwrites any
+    # stale plaintext cookie a browser might still hold).
+    role_b64 = base64.b64encode(b"user").decode()
+    resp = make_response(render_template_string(HOME_PAGE, role="user"))
     resp.set_cookie("role", role_b64, path="/", httponly=False, samesite="Lax")
     return resp
 
