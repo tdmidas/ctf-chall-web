@@ -1,6 +1,6 @@
 # CTF Web Challenge - Cookie Manipulation
 
-A simple Flask web app for a CTF seminar challenge. The server sets a `role` cookie whose value is **base64-encoded** (`dXNlcg==` = `"user"`). Students must send a `role` cookie that base64-decodes to `admin` (i.e. `YWRtaW4=`) to access the flag. Lesson: base64 is encoding, not security.
+A simple Flask web app for a CTF seminar challenge. The server sets a plaintext `role=user` cookie. Students must change the `role` cookie to `admin` to access the flag. Lesson: cookies live on the client and can be edited freely — never trust them.
 
 ## Deploy on Render
 

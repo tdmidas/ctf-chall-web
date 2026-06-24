@@ -4,14 +4,12 @@
 ============================================================================
   web_server.py  --  CTF Web Challenge: Cookie Manipulation (deploy build)
 ============================================================================
-Server gan cookie `role` voi gia tri da ma hoa base64 (vd "user" -> "dXNlcg==").
-Trang /admin chi hien FLAG cho role giai ma ra = "admin".
+Server gan cookie `role=user`. Trang /admin chi hien FLAG cho role = "admin".
 
-Bai hoc: base64 KHONG phai bao mat - du lieu phia client van sua duoc.
+Bai hoc: cookie nam o phia client - nguoi dung sua duoc tuy y -> dung tin cookie.
 ============================================================================
 """
 import os
-import base64
 from flask import Flask, request, make_response, render_template_string
 
 app = Flask(__name__)
@@ -62,26 +60,17 @@ ADMIN_OK = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 </body></html>"""
 
 
-def decode_role(cookie_value):
-    try:
-        return base64.b64decode(cookie_value).decode("utf-8", "ignore")
-    except Exception:
-        return ""
-
-
 @app.route("/")
 def home():
-    # Always (re)issue a clean base64-encoded role=user cookie (overwrites any
-    # stale plaintext cookie a browser might still hold).
-    role_b64 = base64.b64encode(b"user").decode()
+    # Always (re)issue a clean plaintext role=user cookie.
     resp = make_response(render_template_string(HOME_PAGE, role="user"))
-    resp.set_cookie("role", role_b64, path="/", httponly=False, samesite="Lax")
+    resp.set_cookie("role", "user", path="/", httponly=False, samesite="Lax")
     return resp
 
 
 @app.route("/admin")
 def admin():
-    role = decode_role(request.cookies.get("role", ""))
+    role = request.cookies.get("role", "")
     if role == "admin":
         return render_template_string(ADMIN_OK, flag=FLAG)
     return render_template_string(ADMIN_DENIED, role=role or "guest"), 403
