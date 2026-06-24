@@ -3,10 +3,11 @@
 """
 ============================================================================
   web_server.py  --  CTF Web Challenge: Cookie Manipulation (deploy build)
-  Theme: World Cup Ticket Box - phan quyen bang cookie `role`
+  Theme: ticketbox - dat ve su kien. Ve VIP chi "dat" duoc khi role=admin.
 ============================================================================
-Server gan cookie `role=user`. Trang dat ve VIP (/admin) chi mo cho role =
-"admin". Bai hoc: web tin cookie phia client -> sua cookie role=admin la vuot quyen.
+Server gan cookie `role=user`. Ve thuong ai cung dat duoc (hien ticket khong
+co flag). Nut "Dat ve" cua ve VIP bi xam, chi bam duoc khi cookie role=admin;
+khi do flag moi duoc nhung vao trang -> ticket VIP hien flag.
 ============================================================================
 """
 import os
@@ -16,195 +17,187 @@ app = Flask(__name__)
 HERE = os.path.dirname(os.path.abspath(__file__))
 FLAG = os.environ.get("CTF_FLAG", "UIT{c00k1e_n0t_s4f3}")
 
-STYLE = """
+PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ticketbox — Đặt vé sự kiện</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f4f6f8;color:#1a1a1a;
-       min-height:100vh;line-height:1.6}
-  .wrap{max-width:960px;margin:0 auto;padding:0 18px 40px}
-  /* navbar */
-  .nav{background:#0a7d3c;color:#fff;padding:12px 0;margin-bottom:0}
-  .nav .in{max-width:960px;margin:0 auto;padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .brand{font-size:1.15rem;font-weight:800;letter-spacing:.3px}
-  .acct{font-size:.9rem;display:flex;align-items:center;gap:8px}
-  .rolechip{font-family:'Consolas',monospace;background:#fff;color:#0a7d3c;border:1px dashed #0a7d3c;
-            border-radius:6px;padding:2px 8px;font-weight:700}
-  /* hero */
-  .hero{background:linear-gradient(135deg,#0a7d3c,#0c8f45);color:#fff;border-radius:0 0 16px 16px;
-        padding:30px 24px;text-align:center;margin-bottom:24px}
-  .hero .tag{font-size:.72rem;letter-spacing:3px;opacity:.9}
-  .hero h1{font-size:1.5rem;margin:8px 0 6px}
-  .hero p{opacity:.92;font-size:.95rem}
-  /* ticket grid */
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-top:6px}
-  .tk{background:#fff;border:1px solid #e3e6ea;border-radius:14px;padding:18px;position:relative;
-      box-shadow:0 4px 14px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:6px}
-  .tk .stage{font-size:.7rem;letter-spacing:2px;color:#0a7d3c;font-weight:800}
-  .tk .match{font-weight:700;font-size:1.05rem}
-  .tk .price{font-size:1.4rem;font-weight:900;color:#111;margin-top:4px}
-  .buy{margin-top:10px;border:none;border-radius:9px;padding:10px;font-weight:800;cursor:pointer;
-       background:#0a7d3c;color:#fff;text-align:center;text-decoration:none;font-size:.95rem}
-  .buy:hover{background:#0c8f45}
-  .buy.alt{background:#d4af37;color:#1a1a1a}
-  .buy.alt:hover{background:#e7c84a}
-  .tk.locked{border:2px solid #d4af37;background:#fffdf4}
-  .tk .lock{position:absolute;top:-11px;left:14px;background:#d4af37;color:#1a1a1a;font-size:.66rem;
-            font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:999px}
-  .note{margin-top:22px;background:#fff;border:1px solid #e3e6ea;border-left:4px solid #0a7d3c;
-        border-radius:10px;padding:14px 16px;font-size:.93rem}
-  .note code{background:#eef6f0;border:1px solid #cfe6d6;border-radius:5px;padding:1px 6px;font-family:'Consolas',monospace}
-  /* deny */
-  .denybox{background:#fff;border:1px solid #e3e6ea;border-radius:14px;padding:26px;margin-top:24px;text-align:center;
-           box-shadow:0 6px 20px rgba(0,0,0,.05)}
-  .denybox h1{font-size:1.3rem;color:#c62828}
-  .hint{margin-top:14px;background:#fff8e6;border:1px solid #f0dba0;border-radius:10px;padding:12px 14px;
-        font-size:.9rem;text-align:left}
-  .hint code{background:#fff;border:1px solid #e6d28f;border-radius:5px;padding:1px 6px;font-family:'Consolas',monospace}
-  /* ===== TAM VE VIP (trang admin) ===== */
-  .ok-title{color:#0a7d3c;font-weight:800;margin:24px 0 16px;text-align:center;font-size:1.15rem}
-  .ticket{display:flex;max-width:700px;margin:0 auto;background:#fff;border:1px solid #e3e3e3;
-          border-radius:16px;overflow:hidden;box-shadow:0 16px 44px rgba(0,0,0,.14)}
-  .t-stripes{width:12px;flex:0 0 12px;
-             background:repeating-linear-gradient(180deg,#e4002b 0 13px,#1346a0 13px 26px,#0a7d3c 26px 39px)}
-  .t-main{flex:1;padding:24px 28px}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0d0d0d;color:#ececec}
+  /* header */
+  .hd{background:#2ebd6b}
+  .hd .in{max-width:1140px;margin:0 auto;padding:12px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .logo{font-size:1.55rem;font-weight:900;color:#fff;letter-spacing:-.5px}
+  .search{flex:1;min-width:200px;max-width:470px;background:#fff;border-radius:8px;display:flex;align-items:center;
+          gap:8px;padding:9px 14px;color:#8a8a8a;font-size:.92rem}
+  .search .go{margin-left:auto;color:#222;font-weight:700}
+  .nav{margin-left:auto;display:flex;gap:16px;align-items:center;color:#fff;font-weight:600;font-size:.9rem}
+  .nav span{opacity:.95}
+  .rolechip{font-family:'Consolas',monospace;background:#fff;color:#1f7a4d;border-radius:6px;padding:2px 8px;font-weight:700}
+  /* body */
+  .section{max-width:1140px;margin:0 auto;padding:22px 18px 50px}
+  .bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .res{color:#2ebd6b;font-weight:700;font-size:1.05rem}
+  .chips{display:flex;gap:10px;flex-wrap:wrap}
+  .chip{border:1px solid #333;border-radius:999px;padding:7px 15px;color:#cfcfcf;font-size:.85rem;background:#161616}
+  .chip.on{background:#2ebd6b;color:#fff;border-color:#2ebd6b;font-weight:700}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-top:20px}
+  .card{background:#161616;border:1px solid #262626;border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .poster{height:128px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;
+          font-weight:900;color:#fff;font-size:1.05rem;line-height:1.25;letter-spacing:.3px}
+  .poster small{display:block;font-weight:700;font-size:.72rem;opacity:.85;margin-top:6px;letter-spacing:1px}
+  .body{padding:13px 15px;display:flex;flex-direction:column;flex:1}
+  .ttl{color:#fff;font-weight:700;font-size:.97rem;min-height:2.6em}
+  .price{color:#2ebd6b;font-weight:800;margin-top:8px}
+  .date{color:#9a9a9a;font-size:.85rem;margin-top:5px}
+  .buy{margin-top:12px;border:none;border-radius:9px;padding:10px;font-weight:800;cursor:pointer;
+       background:#2ebd6b;color:#fff;font-size:.92rem;font-family:inherit}
+  .buy:hover{background:#28a862}
+  .buy.off{background:#2a2a2a;color:#777;cursor:not-allowed}
+  .lockmsg{margin-top:8px;font-size:.78rem;color:#d4af37;text-align:center}
+  /* modal ticket */
+  .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;justify-content:center;padding:18px;z-index:9}
+  .ovbox{position:relative;width:100%;max-width:700px}
+  .ovclose{position:absolute;top:-14px;right:-6px;background:#fff;color:#111;border:none;border-radius:50%;
+           width:34px;height:34px;font-size:1.1rem;cursor:pointer;font-weight:800;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+  .ticket{display:flex;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.55);color:#141414}
+  .t-stripes{width:12px;flex:0 0 12px;background:repeating-linear-gradient(180deg,#e4002b 0 13px,#1346a0 13px 26px,#2ebd6b 26px 39px)}
+  .t-main{flex:1;padding:24px 28px;min-width:0}
   .t-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-  .t-logo{font-size:1.65rem;font-weight:900;color:#111;line-height:1.1}
-  .t-logo .yr{color:#0a7d3c}
-  .t-city{color:#888;letter-spacing:4px;font-size:.72rem;margin-top:3px}
-  .t-tag{font-size:.65rem;letter-spacing:2px;color:#fff;background:#0a7d3c;padding:4px 9px;border-radius:6px;font-weight:800;white-space:nowrap}
-  .t-match{margin:16px 0;padding:12px 0;border-top:1px solid #eee;border-bottom:1px solid #eee;
-           font-size:1.18rem;font-weight:800;letter-spacing:3px;color:#111}
-  .t-match em{color:#0a7d3c;font-style:normal;font-weight:600;letter-spacing:1px}
-  .t-row{font-size:.9rem;color:#333;margin:7px 0}
-  .t-row b{display:inline-block;min-width:80px;color:#999;letter-spacing:1px;font-size:.68rem;font-weight:700}
-  .t-code{margin-top:16px;padding:14px;border:2px dashed #0a7d3c;border-radius:12px;background:#f2fbf5;text-align:center}
-  .t-code .lbl{color:#0a7d3c;font-size:.72rem;letter-spacing:2px;margin-bottom:6px;font-weight:700}
-  .t-flag{font-family:'Consolas','Courier New',monospace;font-size:1.3rem;font-weight:800;color:#111;word-break:break-all}
-  .t-stub{width:152px;flex:0 0 152px;background:#0a7d3c;color:#fff;display:flex;flex-direction:column;
-          align-items:center;justify-content:center;gap:8px;text-align:center;padding:14px;border-left:2px dashed #cfcfcf}
-  .t-stub .t-badge{background:#fff;border-radius:12px;padding:7px;line-height:0;box-shadow:0 2px 6px rgba(0,0,0,.2)}
-  .t-stub .t-badge img{width:78px;height:78px;object-fit:contain;display:block}
-  .t-stub .num{font-size:2.5rem;font-weight:900;color:#fff;line-height:1}
-  .t-stub .admit{font-size:.72rem;letter-spacing:3px;font-weight:800}
-  .foot{margin-top:16px;color:#666;font-size:.82rem;text-align:center}
-  .back{display:inline-block;margin-top:16px;color:#0a7d3c;font-weight:700;text-decoration:none}
-</style>
-"""
+  .t-logo{font-size:1.3rem;font-weight:900;color:#111;line-height:1.15;word-break:break-word}
+  .t-city{color:#888;letter-spacing:3px;font-size:.72rem;margin-top:3px}
+  .t-tag{font-size:.62rem;letter-spacing:2px;color:#fff;background:#2ebd6b;padding:4px 9px;border-radius:6px;font-weight:800;white-space:nowrap}
+  .t-row{font-size:.9rem;color:#333;margin:10px 0 0}
+  .t-row b{display:inline-block;min-width:74px;color:#999;letter-spacing:1px;font-size:.66rem;font-weight:700}
+  .t-code{margin-top:16px;padding:14px;border:2px dashed #2ebd6b;border-radius:12px;background:#f2fbf5;text-align:center}
+  .t-code .lbl{color:#1f7a4d;font-size:.72rem;letter-spacing:2px;margin-bottom:6px;font-weight:700}
+  .t-flag{font-family:'Consolas','Courier New',monospace;font-size:1.2rem;font-weight:800;color:#111;word-break:break-all}
+  .t-stub{width:150px;flex:0 0 150px;background:#2ebd6b;color:#fff;display:flex;flex-direction:column;align-items:center;
+          justify-content:center;gap:8px;text-align:center;padding:14px;border-left:2px dashed #cfcfcf}
+  .t-badge{background:#fff;border-radius:12px;padding:7px;line-height:0;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .t-badge img{width:70px;height:70px;object-fit:contain;display:block}
+  .t-stub .num{font-size:2.3rem;font-weight:900}
+  .t-stub .admit{font-size:.7rem;letter-spacing:3px;font-weight:800}
+</style></head><body>
 
-NAV = """
-<div class="nav"><div class="in">
-  <div class="brand">🎟️ WorldCup <span style="font-weight:900">Ticket Box</span></div>
-  <div class="acct">👤 Khách · <span class="rolechip">role={{ role }}</span></div>
-</div></div>"""
+<div class="hd"><div class="in">
+  <div class="logo">ticket box</div>
+  <div class="search">🔎 Bạn tìm gì hôm nay?<span class="go">Tìm kiếm</span></div>
+  <div class="nav">
+    <span>Tạo sự kiện</span><span>🎟 Vé của tôi</span><span>Đăng nhập | Đăng ký</span>
+    <span class="rolechip">role={{ role }}</span>
+  </div>
+</div></div>
 
-HOME_PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WorldCup Ticket Box — Đặt vé FIFA World Cup 2026</title>""" + STYLE + """</head><body>
-""" + NAV + """
-<div class="hero">
-  <div class="tag">FIFA WORLD CUP 2026 · NEW YORK</div>
-  <h1>Đặt vé các trận đấu World Cup 2026</h1>
-  <p>Chọn trận và mua vé. Vé VIP trận chung kết chỉ mở cho tài khoản <b>admin</b>.</p>
-</div>
-<div class="wrap">
+<div class="section">
+  <div class="bar">
+    <div class="res">Kết quả tìm kiếm:</div>
+    <div class="chips"><span class="chip">Tất cả các ngày ▾</span><span class="chip">Bộ lọc ▾</span><span class="chip on">Thể thao ✕</span></div>
+  </div>
+
   <div class="grid">
-    <div class="tk">
-      <div class="stage">VÒNG BẢNG</div>
-      <div class="match">France vs England</div>
-      <div class="price">$50</div>
-      <button class="buy" onclick="alert('Đặt vé thành công (demo).')">Đặt vé</button>
+    <div class="card">
+      <div class="poster" style="background:linear-gradient(135deg,#7c3aed,#2563eb)">ĐUA XE GO-KART<small>CITY PARK</small></div>
+      <div class="body"><div class="ttl">Đua xe Go-Kart City Park</div><div class="price">Từ 342.000đ</div>
+        <div class="date">📅 24 tháng 06, 2026</div>
+        <button class="buy" onclick="book('Đua xe Go-Kart City Park','24/06/2026')">Đặt vé</button></div>
     </div>
-    <div class="tk">
-      <div class="stage">TỨ KẾT</div>
-      <div class="match">Brazil vs Argentina</div>
-      <div class="price">$120</div>
-      <button class="buy" onclick="alert('Đặt vé thành công (demo).')">Đặt vé</button>
+    <div class="card">
+      <div class="poster" style="background:linear-gradient(135deg,#b91c1c,#1e3a8a)">AOV PREMIER LEAGUE<small>STUDIO PASS 2026</small></div>
+      <div class="body"><div class="ttl">Studio Pass - Arena of Valor Premier League 2026</div><div class="price">Từ 99.000đ</div>
+        <div class="date">📅 24 tháng 06, 2026</div>
+        <button class="buy" onclick="book('AOV Premier League 2026','24/06/2026')">Đặt vé</button></div>
     </div>
-    <div class="tk locked">
-      <div class="lock">🔒 ADMIN ONLY</div>
-      <div class="stage">VIP · CHUNG KẾT</div>
-      <div class="match">Vé vàng VIP</div>
-      <div class="price">VIP</div>
-      <a class="buy alt" href="/admin">Vào khu vực vé VIP →</a>
+    <div class="card">
+      <div class="poster" style="background:linear-gradient(135deg,#0891b2,#15803d)">BAY DÙ LƯỢN<small>SAPA</small></div>
+      <div class="body"><div class="ttl">Trải nghiệm bay dù lượn tại Sapa</div><div class="price">Từ 2.190.000đ</div>
+        <div class="date">📅 06 tháng 05, 2026</div>
+        <button class="buy" onclick="book('Bay dù lượn tại Sapa','06/05/2026')">Đặt vé</button></div>
     </div>
-  </div>
-  <div class="note">
-    Hệ thống nhận diện quyền của bạn qua <b>cookie <code>role</code></b> — hiện tại đang là
-    <span class="rolechip">{{ role }}</span>. Chỉ tài khoản có <code>role=admin</code> mới mở được
-    khu vực vé VIP chung kết.
+    <div class="card">
+      <div class="poster" style="background:linear-gradient(135deg,#166534,#052e16)">CANTHO CATFISH<small>VBA 2026</small></div>
+      <div class="body"><div class="ttl">VBA 2026 - Home Game of Cantho Catfish</div><div class="price">Từ 100.000đ</div>
+        <div class="date">📅 26 tháng 06, 2026</div>
+        <button class="buy" onclick="book('VBA 2026 - Cantho Catfish','26/06/2026')">Đặt vé</button></div>
+    </div>
+    <div class="card">
+      <div class="poster" style="background:linear-gradient(135deg,#ea580c,#7c2d12)">SAIGON HEAT<small>VBA 2026</small></div>
+      <div class="body"><div class="ttl">VBA 2026 - Saigon Heat vs Nha Trang Dolphins</div><div class="price">Từ 200.000đ</div>
+        <div class="date">📅 03 tháng 07, 2026</div>
+        <button class="buy" onclick="book('Saigon Heat vs Nha Trang Dolphins','03/07/2026')">Đặt vé</button></div>
+    </div>
+    <div class="card">
+      <div class="poster" style="background:linear-gradient(135deg,#a16207,#7f1d1d)">THE LION ERA<small>LION CHAMPIONSHIP 33</small></div>
+      <div class="body"><div class="ttl">Lion Championship 33 - 2026</div><div class="price">Từ 350.000đ</div>
+        <div class="date">📅 11 tháng 07, 2026</div>
+        <button class="buy" onclick="book('Lion Championship 33 - 2026','11/07/2026')">Đặt vé</button></div>
+    </div>
+
+    <div class="card">
+      <div class="poster" style="background:linear-gradient(135deg,#b8860b,#3b2f00)">🏆 FIFA WORLD CUP 2026<small>VÉ VIP CHUNG KẾT</small></div>
+      <div class="body"><div class="ttl">Vé VIP Chung kết FIFA World Cup 2026</div><div class="price">Từ 9.999.000đ</div>
+        <div class="date">📅 12 tháng 06, 2026</div>
+        <button class="buy {{ 'off' if not is_admin else '' }}" {{ 'disabled' if not is_admin else '' }} onclick="bookVip()">Đặt vé{{ ' 🔒' if not is_admin else '' }}</button>
+        {% if not is_admin %}<div class="lockmsg">Chỉ tài khoản admin mới đặt được vé này</div>{% endif %}
+      </div>
+    </div>
   </div>
 </div>
-</body></html>"""
 
-ADMIN_DENIED = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vé VIP — Từ chối truy cập</title>""" + STYLE + """</head><body>
-""" + NAV + """
-<div class="wrap">
-  <div class="denybox">
-    <h1>⛔ Khu vực vé VIP — chỉ dành cho admin</h1>
-    <p>Quyền hiện tại của bạn: <span class="rolechip">role={{ role }}</span> — không phải admin nên không thể nhận vé VIP.</p>
-    <div class="hint">
-      💡 Máy chủ <b>chỉ kiểm tra giá trị cookie <code>role</code></b> mà trình duyệt bạn gửi lên —
-      mà cookie thì nằm ở phía bạn và sửa được tuỳ ý. Thử mở <b>F12 → Application → Cookies</b> xem
-      cookie <code>role</code> đang là gì...
-    </div>
-    <a class="back" href="/">← Quay lại trang đặt vé</a>
+<div class="ov" id="ov" onclick="closeT(event)">
+  <div class="ovbox">
+    <button class="ovclose" id="ovclose" onclick="closeT(event)">✕</button>
+    <div id="ovbody"></div>
   </div>
 </div>
-</body></html>"""
 
-ADMIN_OK = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Vé VIP Chung kết World Cup</title>""" + STYLE + """</head><body>
-""" + NAV.replace("{{ role }}", "admin") + """
-<div class="wrap">
-  <div class="ok-title">✅ Truy cập admin thành công! Đây là vé VIP chung kết của bạn 🎟️</div>
-  <div class="ticket">
+<script>
+const VIP_FLAG = {{ (flag if is_admin else "") | tojson }};
+
+function ref(){ return 'TBX-' + Math.floor(1000 + Math.random()*9000); }
+
+function ticketHTML(title, date, codeLbl, code){
+  return `<div class="ticket">
     <div class="t-stripes"></div>
     <div class="t-main">
       <div class="t-top">
-        <div>
-          <div class="t-logo">FIFA WORLD CUP <span class="yr">2026</span></div>
-          <div class="t-city">NEW YORK</div>
-        </div>
-        <div class="t-tag">VIP TICKET</div>
+        <div><div class="t-logo">${title}</div><div class="t-city">TICKETBOX · E-TICKET</div></div>
+        <div class="t-tag">ADMIT ONE</div>
       </div>
-      <div class="t-match">FRANCE <em>vs</em> ENGLAND</div>
-      <div class="t-row"><b>DATE</b> JUNE 12, 2026 — CHUNG KẾT</div>
-      <div class="t-row"><b>HOLDER</b> ADMIN (VIP)</div>
-      <div class="t-row"><b>GATE / SEAT</b> A1 · ROW 26</div>
-      <div class="t-code">
-        <div class="lbl">★ MÃ VÉ VIP (FLAG) ★</div>
-        <div class="t-flag">{{ flag }}</div>
-      </div>
+      <div class="t-row"><b>NGÀY</b> ${date}</div>
+      <div class="t-row"><b>NGƯỜI</b> ${VIP_FLAG && codeLbl.indexOf('FLAG')>=0 ? 'ADMIN (VIP)' : 'Khách'}</div>
+      <div class="t-row"><b>GHẾ</b> A12 · ROW 26</div>
+      <div class="t-code"><div class="lbl">${codeLbl}</div><div class="t-flag">${code}</div></div>
     </div>
     <div class="t-stub">
-      <div class="t-badge"><img src="/logo-fifa.png" alt="FIFA"></div>
-      <div class="num">26</div>
-      <div class="admit">ADMIT ONE</div>
+      <div class="t-badge"><img src="/logo-fifa.png" alt="logo"></div>
+      <div class="num">26</div><div class="admit">ADMIT ONE</div>
     </div>
-  </div>
-  <div class="foot">Nộp mã vé ở trên (dạng UIT{...}) lên trang nộp flag để ghi điểm.</div>
-  <div style="text-align:center"><a class="back" href="/">← Về trang đặt vé</a></div>
-</div>
+  </div>`;
+}
+
+function show(html){ document.getElementById('ovbody').innerHTML = html; document.getElementById('ov').style.display='flex'; }
+function closeT(e){ if(!e || e.target.id==='ov' || e.target.id==='ovclose'){ document.getElementById('ov').style.display='none'; } }
+
+function book(title, date){ show(ticketHTML(title, date, 'MÃ ĐẶT VÉ', ref())); }
+
+function bookVip(){
+  if(!VIP_FLAG){ show(ticketHTML('FIFA World Cup 2026 — VIP', '12/06/2026', 'MÃ ĐẶT VÉ', '— (cần quyền admin) —')); return; }
+  show(ticketHTML('FIFA WORLD CUP 2026 — VÉ VIP', '12/06/2026', '★ MÃ VÉ VIP (FLAG) ★', VIP_FLAG));
+}
+</script>
 </body></html>"""
 
 
 @app.route("/")
 def home():
-    # Always (re)issue a clean plaintext role=user cookie.
-    resp = make_response(render_template_string(HOME_PAGE, role="user"))
-    resp.set_cookie("role", "user", path="/", httponly=False, samesite="Lax")
-    return resp
-
-
-@app.route("/admin")
-def admin():
     role = request.cookies.get("role", "")
-    if role == "admin":
-        return render_template_string(ADMIN_OK, flag=FLAG)
-    return render_template_string(ADMIN_DENIED, role=role or "guest"), 403
+    is_admin = (role == "admin")
+    resp = make_response(render_template_string(
+        PAGE, role=(role or "user"), is_admin=is_admin, flag=FLAG))
+    # Chi gan role=user khi chua co cookie -> de hoc sinh tu doi sang admin van giu duoc.
+    if not role:
+        resp.set_cookie("role", "user", path="/", httponly=False, samesite="Lax")
+    return resp
 
 
 @app.route("/logo-fifa.png")
