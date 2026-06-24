@@ -66,6 +66,12 @@ PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
   .t-badge img{width:70px;height:70px;object-fit:contain;display:block}
   .t-stub .num{font-size:2.3rem;font-weight:900}
   .t-stub .admit{font-size:.7rem;letter-spacing:3px;font-weight:800}
+  .cookiebar{position:fixed;left:0;right:0;bottom:0;background:#11202e;color:#e8eef3;display:flex;align-items:center;
+             gap:16px;padding:14px 20px;box-shadow:0 -4px 18px rgba(0,0,0,.3);z-index:20;flex-wrap:wrap}
+  .cookiebar .cb-txt{flex:1;min-width:240px;font-size:.9rem;line-height:1.55}
+  .cookiebar code{background:#0b1620;border:1px solid #2a4055;border-radius:5px;padding:1px 6px;font-family:'Consolas',monospace}
+  .cookiebar .cb-btn{background:#2ebd6b;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-weight:800;cursor:pointer;font-family:inherit}
+  .cookiebar .cb-btn:hover{background:#28a862}
 </style></head><body>
 
 <div class="hd"><div class="in">
@@ -100,6 +106,11 @@ PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
       </div>
     </div>
   </div>
+</div>
+
+<div class="cookiebar" id="cookiebar">
+  <div class="cb-txt">🍪 <b>Trang web sử dụng cookie.</b> Chúng tôi dùng cookie để ghi nhớ bạn là ai — ngay cả <b>vai trò (role)</b> của bạn cũng được lưu trong cookie phía trình duyệt. Bạn có thể xem chúng ở <b>F12 → Application → Cookies</b>.</div>
+  <button class="cb-btn" onclick="acceptCookies()">Đồng ý</button>
 </div>
 
 <div class="ov" id="ov" onclick="closeT(event)">
@@ -143,6 +154,9 @@ function bookVip(){
   if(!VIP_FLAG){ show(ticketHTML('Chung kết World Cup 2026', '19/07/2026', '', '', 'Khách')); return; }
   show(ticketHTML('CHUNG KẾT FIFA WORLD CUP 2026', '19/07/2026', '★ MÃ VÉ VIP (FLAG) ★', VIP_FLAG, 'ADMIN (VIP)'));
 }
+
+function acceptCookies(){ document.getElementById('cookiebar').style.display='none'; try{ localStorage.setItem('cookieConsent','1'); }catch(e){} }
+(function(){ try{ if(localStorage.getItem('cookieConsent')) document.getElementById('cookiebar').style.display='none'; }catch(e){} })();
 </script>
 </body></html>"""
 
