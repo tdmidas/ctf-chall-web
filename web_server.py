@@ -15,7 +15,7 @@ from flask import Flask, request, make_response, render_template_string, send_fr
 
 app = Flask(__name__)
 HERE = os.path.dirname(os.path.abspath(__file__))
-FLAG = os.environ.get("CTF_FLAG", "UIT{c00k1e_n0t_s4f3}")
+FLAG = os.environ.get("CTF_FLAG", "UIT{cookie_not_safe}")
 
 PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
