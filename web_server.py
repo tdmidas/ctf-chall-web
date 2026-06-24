@@ -109,7 +109,7 @@ PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 </div>
 
 <div class="cookiebar" id="cookiebar">
-  <div class="cb-txt">🍪 <b>Trang web sử dụng cookie.</b> Chúng tôi dùng cookie để ghi nhớ bạn là ai — ngay cả <b>vai trò (role)</b> của bạn cũng được lưu trong cookie phía trình duyệt. Bạn có thể xem chúng ở <b>F12 → Application → Cookies</b>.</div>
+  <div class="cb-txt">🍪 <b>Trang web sử dụng cookie.</b> Chúng tôi dùng cookie để ghi nhớ bạn là ai — ngay cả <b>vai trò (role)</b> của bạn cũng được lưu trong cookie phía trình duyệt.</div>
   <button class="cb-btn" onclick="acceptCookies()">Đồng ý</button>
 </div>
 
