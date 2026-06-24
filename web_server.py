@@ -101,7 +101,7 @@ PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
       <div class="poster"></div>
       <div class="body"><div class="ttl">Vé VIP Chung kết FIFA World Cup 2026</div><div class="price">Từ 9.999.000đ</div>
         <div class="date">📅 19 tháng 07, 2026</div>
-        <button class="buy {{ 'off' if not is_admin else '' }}" {{ 'disabled' if not is_admin else '' }} onclick="bookVip()">Đặt vé{{ ' 🔒' if not is_admin else '' }}</button>
+        <button class="buy {{ 'off' if not is_admin else '' }}" {{ 'disabled' if not is_admin else '' }} onclick="bookVip()">Nhận vé{{ ' 🔒' if not is_admin else '' }}</button>
         {% if not is_admin %}<div class="lockmsg">Chỉ tài khoản admin mới đặt được vé này</div>{% endif %}
       </div>
     </div>
