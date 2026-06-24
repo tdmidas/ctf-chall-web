@@ -34,9 +34,7 @@ PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px;margin-top:22px}
   .card{background:#fff;border:1px solid #e3e6ea;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;
         box-shadow:0 4px 14px rgba(0,0,0,.05)}
-  .poster{height:120px;display:flex;align-items:center;justify-content:center;text-align:center;padding:14px;
-          font-weight:900;color:#fff;font-size:1.02rem;line-height:1.3;letter-spacing:.3px}
-  .poster small{display:block;font-weight:700;font-size:.72rem;opacity:.9;margin-top:6px;letter-spacing:1px}
+  .poster{height:140px;background:#0a2a4a url('/wc-background.jpg') center/cover no-repeat}
   .body{padding:13px 15px;display:flex;flex-direction:column;flex:1}
   .ttl{color:#111;font-weight:700;font-size:.97rem;min-height:2.6em}
   .price{color:#1f9d57;font-weight:800;margin-top:8px}
@@ -81,20 +79,20 @@ PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 
   <div class="grid">
     <div class="card">
-      <div class="poster" style="background:linear-gradient(135deg,#1346a0,#b91c1c)">FRANCE vs ENGLAND<small>BẢNG A · VÒNG BẢNG</small></div>
+      <div class="poster"></div>
       <div class="body"><div class="ttl">France vs England — Vòng bảng</div><div class="price">Từ 1.500.000đ</div>
         <div class="date">📅 12 tháng 06, 2026</div>
         <button class="buy" onclick="book('France vs England','12/06/2026')">Đặt vé</button></div>
     </div>
     <div class="card">
-      <div class="poster" style="background:linear-gradient(135deg,#1f9d57,#0b6e3a)">BRAZIL vs ARGENTINA<small>BẢNG C · VÒNG BẢNG</small></div>
+      <div class="poster"></div>
       <div class="body"><div class="ttl">Brazil vs Argentina — Vòng bảng</div><div class="price">Từ 1.800.000đ</div>
         <div class="date">📅 13 tháng 06, 2026</div>
         <button class="buy" onclick="book('Brazil vs Argentina','13/06/2026')">Đặt vé</button></div>
     </div>
 
     <div class="card">
-      <div class="poster" style="background:linear-gradient(135deg,#b8860b,#3b2f00)">🏆 CHUNG KẾT<small>VÉ VIP · FINAL</small></div>
+      <div class="poster"></div>
       <div class="body"><div class="ttl">Vé VIP Chung kết FIFA World Cup 2026</div><div class="price">Từ 9.999.000đ</div>
         <div class="date">📅 19 tháng 07, 2026</div>
         <button class="buy {{ 'off' if not is_admin else '' }}" {{ 'disabled' if not is_admin else '' }} onclick="bookVip()">Đặt vé{{ ' 🔒' if not is_admin else '' }}</button>
@@ -164,6 +162,11 @@ def home():
 @app.route("/logo-fifa.png")
 def logo_fifa():
     return send_from_directory(HERE, "logo-fifa.png")
+
+
+@app.route("/wc-background.jpg")
+def wc_background():
+    return send_from_directory(HERE, "wc-background.jpg")
 
 
 if __name__ == "__main__":
