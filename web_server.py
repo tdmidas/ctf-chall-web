@@ -114,9 +114,9 @@ PAGE = """<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 <script>
 const VIP_FLAG = {{ (flag if is_admin else "") | tojson }};
 
-function ref(){ return 'WC26-' + Math.floor(1000 + Math.random()*9000); }
-
 function ticketHTML(title, date, codeLbl, code, holder){
+  // Chi hien o "ma ve" khi co code (ve VIP co flag). Ve thuong -> an di cho khoi nham la flag.
+  const codeBox = code ? `<div class="t-code"><div class="lbl">${codeLbl}</div><div class="t-flag">${code}</div></div>` : '';
   return `<div class="ticket">
     <div class="t-stripes"></div>
     <div class="t-main">
@@ -127,7 +127,7 @@ function ticketHTML(title, date, codeLbl, code, holder){
       <div class="t-row"><b>NGÀY</b> ${date}</div>
       <div class="t-row"><b>NGƯỜI</b> ${holder}</div>
       <div class="t-row"><b>GHẾ</b> A12 · ROW 26</div>
-      <div class="t-code"><div class="lbl">${codeLbl}</div><div class="t-flag">${code}</div></div>
+      ${codeBox}
     </div>
     <div class="t-stub">
       <div class="t-badge"><img src="/logo-fifa.png" alt="logo"></div>
@@ -139,10 +139,10 @@ function ticketHTML(title, date, codeLbl, code, holder){
 function show(html){ document.getElementById('ovbody').innerHTML = html; document.getElementById('ov').style.display='flex'; }
 function closeT(e){ if(!e || e.target.id==='ov' || e.target.id==='ovclose'){ document.getElementById('ov').style.display='none'; } }
 
-function book(title, date){ show(ticketHTML(title, date, 'MÃ ĐẶT VÉ', ref(), 'Khách')); }
+function book(title, date){ show(ticketHTML(title, date, '', '', 'Khách')); }   // ve thuong: khong co ma ve
 
 function bookVip(){
-  if(!VIP_FLAG){ show(ticketHTML('Chung kết World Cup 2026', '19/07/2026', 'MÃ ĐẶT VÉ', '— (cần quyền admin) —', 'Khách')); return; }
+  if(!VIP_FLAG){ show(ticketHTML('Chung kết World Cup 2026', '19/07/2026', '', '', 'Khách')); return; }
   show(ticketHTML('CHUNG KẾT FIFA WORLD CUP 2026', '19/07/2026', '★ MÃ VÉ VIP (FLAG) ★', VIP_FLAG, 'ADMIN (VIP)'));
 }
 </script>
