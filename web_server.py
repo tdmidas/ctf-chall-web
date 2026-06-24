@@ -155,8 +155,7 @@ function bookVip(){
   show(ticketHTML('CHUNG KẾT FIFA WORLD CUP 2026', '19/07/2026', '★ MÃ VÉ VIP (FLAG) ★', VIP_FLAG, 'ADMIN (VIP)'));
 }
 
-function acceptCookies(){ document.getElementById('cookiebar').style.display='none'; try{ localStorage.setItem('cookieConsent','1'); }catch(e){} }
-(function(){ try{ if(localStorage.getItem('cookieConsent')) document.getElementById('cookiebar').style.display='none'; }catch(e){} })();
+function acceptCookies(){ document.getElementById('cookiebar').style.display='none'; }  // chi an cho lan xem nay; refresh la hien lai
 </script>
 </body></html>"""
 
